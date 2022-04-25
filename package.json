@@ -1,0 +1,60 @@
+{
+  "name": "ajs.course.paper",
+  "version": "1.0.0",
+  "description": "Курсовая работа по теме - Продвинутый JS",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack serve --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js",
+    "lint": "eslint .",
+    "test": "jest --testPathPattern=./src/ --coverage",
+    "coverage": "jest --testPathPattern=./src/ --coverage",
+    "e2e": "jest --testPathPattern=./e2e/ --runInBand",
+    "doc": "jsdoc -c jsdoc.conf.json",
+    "preshow:coverage": "npm run coverage",
+    "show:coverage": "live-server coverage/lcov-report",
+    "preshow:doc": "npm run doc",
+    "show:doc": "live-server doc",
+    "preshow:dist": "npm run build",
+    "show:dist": "live-server dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gronik4/AJScoursePaper.git"
+  },
+  "keywords": [
+    "game"
+  ],
+  "author": "Gronik4",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gronik4/AJScoursePaper.git/issues"
+  },
+  "homepage": "https://github.com/Gronik4/AJScoursePaper.git#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.16.8",
+    "@babel/core": "^7.16.12",
+    "@babel/preset-env": "^7.16.11",
+    "babel": "^6.23.0",
+    "babel-jest": "^27.4.6",
+    "babel-loader": "^8.2.3",
+    "css-loader": "^6.5.1",
+    "eslint": "^8.8.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.4",
+    "html-loader": "^3.1.0",
+    "html-webpack-plugin": "^5.5.0",
+    "jest": "^27.4.7",
+    "mini-css-extract-plugin": "^2.5.3",
+    "puppeteer": "^13.3.2",
+    "svg-inline-loader": "^0.8.2",
+    "terser-webpack-plugin": "^5.3.0",
+    "webpack": "^5.11.1",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.7.3",
+    "webpack-merge": "^5.8.0"
+  },
+  "dependencies": {
+    "core-js": "^3.20.3"
+  }
+}
