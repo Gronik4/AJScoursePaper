@@ -1,18 +1,16 @@
-/* eslint-disable no-plusplus */
 import GameState from './GameState';
 
 export function calcTileType(index, boardSize) {
   // TODO: write logic here
-  let field = '';
-  if (index === 0) { field = 'top-left'; return field; }
-  if (index > 0 && index < (boardSize - 1)) { field = 'top'; return field; }
-  if (index === (boardSize - 1)) { field = 'top-right'; return field; }
-  if (index === boardSize * (boardSize - 1)) { field = 'bottom-left'; return field; }
-  if (index === (boardSize ** 2 - 1)) { field = 'bottom-right'; return field; }
-  if (index % boardSize === 0) { field = 'left'; return field; }
-  if ((index + 1) % boardSize === 0) { field = 'right'; return field; }
-  if (index > boardSize * (boardSize - 1) && index < (boardSize ** 2 - 1)) { field = 'bottom'; } else { field = 'center'; }
-  return field;
+  if (index === 0) { return 'top-left'; }
+  if (index > 0 && index < (boardSize - 1)) { return 'top'; }
+  if (index === (boardSize - 1)) { return 'top-right'; }
+  if (index === boardSize * (boardSize - 1)) { return 'bottom-left'; }
+  if (index === (boardSize ** 2 - 1)) { return 'bottom-right'; }
+  if (index % boardSize === 0) { return 'left'; }
+  if ((index + 1) % boardSize === 0) { return 'right'; }
+  if (index > boardSize * (boardSize - 1) && index < (boardSize ** 2 - 1)) { return 'bottom'; }
+  return 'center';
 }
 
 export function calcHealthLevel(health) {
@@ -27,7 +25,7 @@ export function calcHealthLevel(health) {
   return 'high';
 }
 
-function calcFields(index, size, distance) {
+function calcFieldsAttack(index, size, distance) {
   const resalt = [];
   const X = index % size;
   const Y = (index - X) / size;
@@ -45,6 +43,35 @@ function calcFields(index, size, distance) {
   resalt.splice((resalt.indexOf(index)), 1);
   return resalt;
 }
+
+function calkFieldsMove(index, size, distance) {
+  const resalt = [];
+  const X = index % size;
+  const Y = (index - X) / size;
+  for (let i = -distance; i <= distance; i += 1) {
+    const newY = Y + i;
+    if (newY >= 0 && newY < size) {
+      let newX = 0;
+      if (i !== 0) {
+        for (let j = 1; j > -2; j -= 1) {
+          newX = X + i * j;
+          if (newX >= 0 && newX < size) {
+            resalt.push(newY * size + newX);
+          }
+        }
+      } else {
+        for (let y = -distance; y <= distance; y += 1) {
+          newX = X + y;
+          if (newX >= 0 && newX < size) {
+            resalt.push(newY * size + newX);
+          }
+        }
+      }
+    }
+  }
+  resalt.splice((resalt.indexOf(index)), 1);
+  return resalt;
+}
 export function getAllowedFields(index, type, flag) {
   let positions = [];
   let distance = '';
@@ -52,20 +79,31 @@ export function getAllowedFields(index, type, flag) {
   switch (type) {
     case 'swordsman':
     case 'undead':
-      if (flag === 'attack') { distance = 1; }
-      if (flag === 'move') { distance = 4; }
-      positions = calcFields(index, size, distance);
+      if (flag === 'attack') {
+        distance = 1;
+        positions = calcFieldsAttack(index, size, distance);
+      }
+      if (flag === 'move') {
+        distance = 4;
+        positions = calkFieldsMove(index, size, distance);
+      }
       break;
     case 'bowman':
     case 'vampire':
       distance = 2;
-      positions = calcFields(index, size, distance);
+      if (flag === 'move') { positions = calkFieldsMove(index, size, distance); }
+      if (flag === 'attack') { positions = calcFieldsAttack(index, size, distance); }
       break;
     case 'magician':
     case 'daemon':
-      if (flag === 'attack') { distance = 4; }
-      if (flag === 'move') { distance = 1; }
-      positions = calcFields(index, size, distance);
+      if (flag === 'attack') {
+        distance = 4;
+        positions = calcFieldsAttack(index, size, distance);
+      }
+      if (flag === 'move') {
+        distance = 1;
+        positions = calkFieldsMove(index, size, distance);
+      }
       break;
     default:
       break;
@@ -79,7 +117,7 @@ export function getAttacker(object) {
   const { type } = batter.character.type;
   const indexBatter = batter.position;
   const index = victim.position;
-  GameState.zeroP = { type, pos: indexBatter };// Атакующий
+  GameState.zeroP = { typeAt: type, pos: indexBatter };// Атакующий
   resalt = { type: 'mon', pos: index };// Жертва
   return resalt;
 }
@@ -99,7 +137,7 @@ export function getMover(object) {
         posToAttack.attacker = index;
       }
     }
-    if (posToAttack.pos.length === 0) { el++; } else { break; }
+    if (posToAttack.pos.length === 0) { el += 1; } else { break; }
   }
   if (posToAttack.attacker === 0) {
     const index = object[0].batter.position;// Индекс(позиция) атакующего.

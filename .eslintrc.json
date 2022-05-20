@@ -2,16 +2,6 @@
   "env": {
       "browser": true,
       "es2021": true
-      /*"test": { // После проверки линтером раскоментить!!
-          "presets": [[
-              "@babel/preset-env",
-              {
-              "targets": {
-                  "node": "current"
-              }
-              }
-          ]]
-      }*/
   },
   "extends": [
       "airbnb-base"
@@ -22,9 +12,8 @@
   },
   "rules": {
       "no-console": 0 ,
-      "linebreak-style": ["error", "windows"],
+      //"linebreak-style": ["error", "windows"],
       "no-alert": "off",
-      "no-console": 0,
       "no-restricted-syntax": [
           "error",
           "LabeledStatement",

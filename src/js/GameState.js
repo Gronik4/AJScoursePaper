@@ -1,8 +1,9 @@
 /**
  * @param GameState.level - Уровень игры, игроков и т.д.
  * @param GameState.points - Каличество баллов игрока.
- * @param GameState.zeroP - Объект. Точка отсчета для рассчетов разрешенных
- * полей для перемещения или атаки. Причем, type: - тип  pos: - позиция активного игрока.
+ * @param GameState.zeroP - Объект.
+ * Точка отсчета для рассчетов разрешенных полей для перемещения или атаки.
+ * Причем, typeAt: - тип от type of attacker, pos: - позиция активного игрока.
  * @param GameState.teamMon - Массив объектов. Команда компьютера (монстры).
  * @param GameState.teamHum - Массив объектов. Команда игрока (люди).
  * @param GameState.fighters - Массив объектов. Все игроки.
@@ -11,21 +12,17 @@
 import themes from './themes';
 
 export default class GameState {
-  static level = 1;
-
-  static points = 0;
-
-  static monster = ['undead', 'vampire', 'daemon'];
-
-  static human = ['magician', 'bowman', 'swordsman'];
+  constructor() {
+    this.level = 1;
+    this.points = 0;
+    this.monster = ['undead', 'vampire', 'daemon'];
+    this.human = ['magician', 'bowman', 'swordsman'];
+    this.teamMon = [];
+    this.teamHum = [];
+    this.fighters = [];
+  }
 
   static zeroP = {};
-
-  static teamMon = [];
-
-  static teamHum = [];
-
-  static fighters = [];
 
   static occupied = [];
 

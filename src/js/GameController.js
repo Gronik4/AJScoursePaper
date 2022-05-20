@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 import { getAllowedFields, getAttacker, getMover } from './utils';
 import GameState from './GameState';
 import Team from './Team';
@@ -7,15 +6,17 @@ import cursors from './cursors';
 import GamePlay from './GamePlay';
 
 export default class GameController {
-  constructor(gamePlay, stateService) {
+  constructor(gamePlay, stateService, GaSte) {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
+    this.GS = GaSte;
+    this.pc = [];
   }
 
   init() {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
-    this.gamePlay.drawUi(GameState.getThem(GameState.level));
+    this.gamePlay.drawUi(GameState.getThem(this.GS.level));
     this.gamePlay.addNewGameListener(this.onNewGameClick.bind(this));
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
@@ -26,18 +27,18 @@ export default class GameController {
 
   async onCellClick(index) {
     // TODO: react to click
-    if (event.target.firstChild) {
-      const specified = GameState.fighters.find((item) => item.position === index);
-      const type = specified.character.type;// eslint-disable-line
-      if (GameState.human.includes(type)) {
-        for (const item of GameState.fighters) {
+    if (this.pc[index].firstChild) {
+      const specified = this.GS.fighters.find((item) => item.position === index);
+      const { type } = specified.character;
+      if (this.GS.human.includes(type)) {
+        for (const item of this.GS.fighters) {
           this.gamePlay.deselectCell(item.position);
         }
         this.gamePlay.selectCell(index, 'yellow');
-        GameState.zeroP = { type: type, pos: index };// eslint-disable-line
+        GameState.zeroP = { typeAt: type, pos: index };
       } else {
-        const { pos, type } = GameState.zeroP;// eslint-disable-line
-        const fieldsAttack = getAllowedFields(pos, type, 'attack');
+        const { pos, typeAt } = GameState.zeroP;
+        const fieldsAttack = getAllowedFields(pos, typeAt, 'attack');
         if (!fieldsAttack.includes(index)) {
           GamePlay.showError('Вы не можете управлять игроками компьютера');
         } else { // Ответ компа на удар игрока.
@@ -47,15 +48,15 @@ export default class GameController {
         }
       }
     } else {
-      const { pos, type } = GameState.zeroP;
-      const fieldsMove = getAllowedFields(pos, type, 'move');
+      const { pos, typeAt } = GameState.zeroP;
+      const fieldsMove = getAllowedFields(pos, typeAt, 'move');
       if (!fieldsMove.includes(index)) {
         GamePlay.showError('Это не допустимое действие');
       } else { // Ответ компа на перемещение игрока.
-        const specified = GameState.fighters.find((item) => item.position === pos);
+        const specified = this.GS.fighters.find((item) => item.position === pos);
         this.gamePlay.deselectCell(specified.position);
         specified.position = index;
-        this.gamePlay.redrawPositions(GameState.fighters);
+        this.gamePlay.redrawPositions(this.GS.fighters);
         this.gamePlay.deselectCell(index);
         GameState.zeroP = {};
         const answer = this.compResponce();
@@ -66,29 +67,30 @@ export default class GameController {
 
   onCellEnter(index) {
     // TODO: react to mouse enter
+    this.pc = this.gamePlay.cells;
     if (typeof (GameState.zeroP.pos) === 'number') {
-      const { pos, type } = GameState.zeroP;
-      const fieldsMove = getAllowedFields(pos, type, 'move');
-      const fieldsAttack = getAllowedFields(pos, type, 'attack');
-      if (fieldsMove.includes(index) && (!event.target.firstChild)) {
+      const { pos, typeAt } = GameState.zeroP;
+      const fieldsMove = getAllowedFields(pos, typeAt, 'move');
+      const fieldsAttack = getAllowedFields(pos, typeAt, 'attack');
+      if (fieldsMove.includes(index) && (!this.pc[index].firstChild)) {
         this.gamePlay.selectCell(index, 'green');
         this.gamePlay.setCursor(cursors.pointer);
       } else {
         this.gamePlay.setCursor(cursors.notallowed);
       }
-      if (event.target.firstChild) {
+      if (this.pc[index].firstChild) {
         if (fieldsAttack.includes(index)
-          && GameState.monster.includes(event.target.firstChild.classList[1])) {
+          && this.GS.monster.includes(this.pc[index].firstChild.classList[1])) {
           this.gamePlay.selectCell(index, 'red');
           this.gamePlay.setCursor(cursors.crosshair);
         }
       }
     }
-    if (event.target.firstChild) {
-      if (GameState.human.includes(event.target.firstChild.classList[1])) {
+    if (this.pc[index].firstChild) {
+      if (this.GS.human.includes(this.pc[index].firstChild.classList[1])) {
         this.gamePlay.setCursor(cursors.pointer);
       }
-      const specified = GameState.fighters.find((item) => item.position === index);
+      const specified = this.GS.fighters.find((item) => item.position === index);
       const {
         level, attack, defence, health, type,
       } = specified.character;
@@ -100,36 +102,38 @@ export default class GameController {
   onCellLeave(index) {
     // TODO: react to mouse leave
     this.gamePlay.setCursor(cursors.auto);
-    if (event.target.firstChild) { this.gamePlay.hideCellTooltip(index); }
-    if (!event.target.classList.contains('selected-yellow')) { this.gamePlay.deselectCell(index); }
+    if (this.pc[index].firstChild) { this.gamePlay.hideCellTooltip(index); }
+    if (this.pc[index]) {
+      if (!this.pc[index].classList.contains('selected-yellow')) { this.gamePlay.deselectCell(index); }
+    }
   }
 
   onNewGameClick() {
-    GameState.level = 1;
-    GameState.points = 0;
-    GamePlay.showMessage(`Новая игра.\nУровень: ${GameState.level}\nНабрано баллов: ${GameState.points}`);
-    GameState.teamHum.length = 0;
-    GameState.teamMon.length = 0;
+    this.GS.level = 1;
+    this.GS.points = 0;
+    GamePlay.showMessage(`Новая игра.\nУровень: ${this.GS.level}\nНабрано баллов: ${this.GS.points}`);
+    this.GS.teamHum.length = 0;
+    this.GS.teamMon.length = 0;
     this.gamePlay.container.innerHTML = '';
-    this.gamePlay.drawUi(GameState.getThem(GameState.level));
-    if (GameState.fighters.length) {
-      for (const item of GameState.fighters) {
+    this.gamePlay.drawUi(GameState.getThem(this.GS.level));
+    if (this.GS.fighters.length) {
+      for (const item of this.GS.fighters) {
         this.gamePlay.deselectCell(item.position);
       }
-      GameState.fighters.length = 0;
+      this.GS.fighters.length = 0;
     }
-    this.creatTeams(GameState.level);
+    this.creatTeams(this.GS.level);
   }
 
   async attackResult(index, kicker) {
     let teamStriker;
     let teamInjured;
     if (kicker === 'hum') {
-      teamStriker = GameState.teamHum;
-      teamInjured = GameState.teamMon;
+      teamStriker = this.GS.teamHum;
+      teamInjured = this.GS.teamMon;
     } else {
-      teamStriker = GameState.teamMon;
-      teamInjured = GameState.teamHum;
+      teamStriker = this.GS.teamMon;
+      teamInjured = this.GS.teamHum;
     }
     const striker = teamStriker.find((item) => item.position === GameState.zeroP.pos);
     const injured = teamInjured.find((item) => item.position === index);
@@ -143,36 +147,36 @@ export default class GameController {
 
     if (injured.character.health <= 0) {
       teamInjured.splice(teamInjured.indexOf(injured), 1);
-      GameState.fighters = teamStriker.concat(teamInjured);
-      this.gamePlay.redrawPositions(GameState.fighters);
+      this.GS.fighters = teamStriker.concat(teamInjured);
+      this.gamePlay.redrawPositions(this.GS.fighters);
       GameState.zeroP = {};
     }
-    if (GameState.teamHum.length === 0) {
+    if (this.GS.teamHum.length === 0) {
       GamePlay.showMessage(`Конец игры.\n Увы!!! Вы проиграли!\nНабрано баллов - ${GameState.points}\n
         Чтобы начать заново, нажмите "New Game".`);
       return;
     }
 
-    if (GameState.teamMon.length === 0) {
-      GameState.level += 1;
-      GameState.occupied = [];
-      for (const item of GameState.teamHum) {
-        GameState.occupied.push(item.position);
+    if (this.GS.teamMon.length === 0) {
+      this.GS.level += 1;
+      this.GS.occupied = [];
+      for (const item of this.GS.teamHum) {
+        this.GS.occupied.push(item.position);
       }
-      if (GameState.level === 5) {
-        GamePlay.showMessage(`Вы победили!!! Конец игры.\nНабрано баллов - ${GameState.points}`);
+      if (this.GS.level === 5) {
+        GamePlay.showMessage(`Вы победили!!! Конец игры.\nНабрано баллов - ${this.GS.points}`);
         return;
       }
       this.gamePlay.container.innerHTML = '';
-      this.gamePlay.drawUi(GameState.getThem(GameState.level));
-      this.creatTeams(GameState.level, GameState.teamHum);
-      GamePlay.showMessage(`Следующий раунд.\nУровень - ${GameState.level}\nНабрано баллов - ${GameState.points}`);
+      this.gamePlay.drawUi(GameState.getThem(this.GS.level));
+      this.creatTeams(this.GS.level, this.GS.teamHum);
+      GamePlay.showMessage(`Следующий раунд.\nУровень - ${this.GS.level}\nНабрано баллов - ${this.GS.points}`);
     }
 
-    for (const item of GameState.fighters) {
+    for (const item of this.GS.fighters) {
       this.gamePlay.deselectCell(item.position);
     }
-    this.gamePlay.redrawPositions(GameState.fighters);
+    this.gamePlay.redrawPositions(this.GS.fighters);
   }
 
   creatTeams(level, survivors) {
@@ -180,7 +184,7 @@ export default class GameController {
     if (survivors) {
       numberSur = survivors.length;
       for (const item of survivors) {
-        GameState.points += item.character.health;
+        this.GS.points += item.character.health;
         item.character.level += 1;
         item.character.attack = Math.round(
           item.character.attack * (1 + item.character.health / 100),
@@ -194,7 +198,7 @@ export default class GameController {
     }
     const team1 = new Team('human', level, numberSur).addTeam();
     for (const item of team1) {
-      GameState.teamHum.push(new PositionedCharacter(item).creatPositions());
+      this.GS.teamHum.push(new PositionedCharacter(item).creatPositions());
     }
     const team2 = new Team('monster', level, numberSur).addTeam();
     for (const item of team2) {
@@ -207,19 +211,20 @@ export default class GameController {
           player.character.defence * (player.character.level - 0.4),
         );
       }
-      GameState.teamMon.push(player);
+      this.GS.teamMon.push(player);
     }
-    GameState.fighters = GameState.teamMon.concat(GameState.teamHum);
-    this.gamePlay.redrawPositions(GameState.fighters);
+    this.GS.fighters = this.GS.teamMon.concat(this.GS.teamHum);
+    this.gamePlay.redrawPositions(this.GS.fighters);
     GameState.zeroP = {};
   }
 
   compResponce() {
-    if (GameState.teamMon.length === 0) { return; }
+    let output;
+    if (this.GS.teamMon.length === 0) { return false; }
     const duels = [];
-    for (const el of GameState.teamMon) {
+    for (const el of this.GS.teamMon) {
       const elFieldsAttack = getAllowedFields(el.position, el.character.type, 'attack');
-      for (const mem of GameState.teamHum) {
+      for (const mem of this.GS.teamHum) {
         if (elFieldsAttack.includes(mem.position)) {
           const duelists = { batter: el, victim: mem };
           duels.push(duelists);
@@ -228,8 +233,8 @@ export default class GameController {
     }
     if (duels.length === 0) {
       const possibleDuels = [];
-      for (const el of GameState.teamMon) {
-        for (const it of GameState.teamHum) {
+      for (const el of this.GS.teamMon) {
+        for (const it of this.GS.teamHum) {
           const demage = Math.max(
             (el.character.attack - it.character.defence).toFixed(1),
             (el.character.attack * 0.1).toFixed(1),
@@ -240,34 +245,36 @@ export default class GameController {
       }
       possibleDuels.sort((a, b) => b.demage - a.demage);
       const moveMon = getMover(possibleDuels);
-      const specified = GameState.fighters.find((item) => item.position === moveMon.old);
+      const specified = this.GS.fighters.find((item) => item.position === moveMon.old);
       specified.position = moveMon.next;
-      this.gamePlay.redrawPositions(GameState.fighters);
-      for (const item of GameState.fighters) {
+      this.gamePlay.redrawPositions(this.GS.fighters);
+      for (const item of this.GS.fighters) {
         this.gamePlay.deselectCell(item.position);
       }
+      output = false;
     } else if (duels.length === 1) {
-      return getAttacker(duels[0]);// eslint-disable-line
+      output = getAttacker(duels[0]);
     } else {
       for (const item of duels) {
-        // eslint-disable-next-line max-len
-        const demage = Math.max((item.batter.character.attack - item.victim.character.defence).toFixed(1), (item.batter.character.attack * 0.1.toFixed(1)));
+        const demage = Math.max((item.batter.character.attack - item.victim.character.defence)
+          .toFixed(1), (item.batter.character.attack * 0.1.toFixed(1)));
         item.demage = demage;
       }
       duels.sort((a, b) => b.demage - a.demage);
-      return getAttacker(duels[0]);// eslint-disable-line
+      output = getAttacker(duels[0]);
     }
+    return output;
   }
 
   onSaveGameClick() {
-    if (GameState.fighters.length === 0) { GamePlay.showMessage('Не чего сохранять!! Начните играть!'); return; }
+    if (this.GS.fighters.length === 0) { GamePlay.showMessage('Не чего сохранять!! Начните играть!'); return; }
     const saved = {
-      level: GameState.level,
-      points: GameState.points,
-      teamHum: GameState.teamHum,
-      teamMon: GameState.teamMon,
-      fighters: GameState.fighters,
-      occupied: GameState.occupied,
+      level: this.GS.level,
+      points: this.GS.points,
+      teamHum: this.GS.teamHum,
+      teamMon: this.GS.teamMon,
+      fighters: this.GS.fighters,
+      occupied: this.GS.occupied,
     };
     this.stateService.save(saved);
   }
@@ -278,14 +285,14 @@ export default class GameController {
     const {
       level, points, teamHum, teamMon, occupied,
     } = unloaded;
-    GameState.level = level;
-    GameState.points = points;
-    GameState.teamMon = teamMon;
-    GameState.teamHum = teamHum;
-    GameState.fighters = GameState.teamHum.concat(GameState.teamMon);
-    GameState.occupied = occupied;
+    this.GS.level = level;
+    this.GS.points = points;
+    this.GS.teamMon = teamMon;
+    this.GS.teamHum = teamHum;
+    this.GS.fighters = this.GS.teamHum.concat(this.GS.teamMon);
+    this.GS.occupied = occupied;
     this.gamePlay.container.innerHTML = '';
     this.gamePlay.drawUi(GameState.getThem(level));
-    this.gamePlay.redrawPositions(GameState.fighters);
+    this.gamePlay.redrawPositions(this.GS.fighters);
   }
 }
