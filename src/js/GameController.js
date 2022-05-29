@@ -4,6 +4,7 @@ import Team from './Team';
 import PositionedCharacter from './PositionedCharacter';
 import cursors from './cursors';
 import GamePlay from './GamePlay';
+import themes from './themes';
 
 export default class GameController {
   constructor(gamePlay, stateService, GaSte) {
@@ -13,10 +14,25 @@ export default class GameController {
     this.pc = [];
   }
 
+  static getThem(level) {
+    switch (level) {
+      case 1:
+        return themes.prairie;
+      case 2:
+        return themes.desert;
+      case 3:
+        return themes.arctic;
+      case 4:
+        return themes.mountain;
+      default:
+        return themes.prairie;
+    }
+  }
+
   init() {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
-    this.gamePlay.drawUi(GameState.getThem(this.GS.level));
+    this.gamePlay.drawUi(GameController.getThem(this.GS.level));
     this.gamePlay.addNewGameListener(this.onNewGameClick.bind(this));
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
@@ -115,7 +131,7 @@ export default class GameController {
     this.GS.teamHum.length = 0;
     this.GS.teamMon.length = 0;
     this.gamePlay.container.innerHTML = '';
-    this.gamePlay.drawUi(GameState.getThem(this.GS.level));
+    this.gamePlay.drawUi(GameController.getThem(this.GS.level));
     if (this.GS.fighters.length) {
       for (const item of this.GS.fighters) {
         this.gamePlay.deselectCell(item.position);
@@ -159,16 +175,16 @@ export default class GameController {
 
     if (this.GS.teamMon.length === 0) {
       this.GS.level += 1;
-      this.GS.occupied = [];
+      GameState.occupied = [];
       for (const item of this.GS.teamHum) {
-        this.GS.occupied.push(item.position);
+        GameState.occupied.push(item.position);
       }
       if (this.GS.level === 5) {
         GamePlay.showMessage(`Вы победили!!! Конец игры.\nНабрано баллов - ${this.GS.points}`);
         return;
       }
       this.gamePlay.container.innerHTML = '';
-      this.gamePlay.drawUi(GameState.getThem(this.GS.level));
+      this.gamePlay.drawUi(GameController.getThem(this.GS.level));
       this.creatTeams(this.GS.level, this.GS.teamHum);
       GamePlay.showMessage(`Следующий раунд.\nУровень - ${this.GS.level}\nНабрано баллов - ${this.GS.points}`);
     }
@@ -274,7 +290,7 @@ export default class GameController {
       teamHum: this.GS.teamHum,
       teamMon: this.GS.teamMon,
       fighters: this.GS.fighters,
-      occupied: this.GS.occupied,
+      occupied: GameState.occupied,
     };
     this.stateService.save(saved);
   }
@@ -290,9 +306,9 @@ export default class GameController {
     this.GS.teamMon = teamMon;
     this.GS.teamHum = teamHum;
     this.GS.fighters = this.GS.teamHum.concat(this.GS.teamMon);
-    this.GS.occupied = occupied;
+    GameState.occupied = occupied;
     this.gamePlay.container.innerHTML = '';
-    this.gamePlay.drawUi(GameState.getThem(level));
+    this.gamePlay.drawUi(GameController.getThem(level));
     this.gamePlay.redrawPositions(this.GS.fighters);
   }
 }

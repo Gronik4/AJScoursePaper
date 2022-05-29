@@ -1,9 +1,11 @@
 export default class GameStateService {
-  constructor(storage) {
+  constructor(storage, gaSt) {
     this.storage = storage;
+    this.gS = gaSt;
   }
 
-  save(state) {
+  save() {
+    const state = this.gS.preparingSave();
     this.storage.setItem('state', JSON.stringify(state));
   }
 

@@ -9,7 +9,6 @@
  * @param GameState.fighters - Массив объектов. Все игроки.
  * @param GameState.occupied - Занятые игроками поля.
  */
-import themes from './themes';
 
 export default class GameState {
   constructor() {
@@ -26,18 +25,15 @@ export default class GameState {
 
   static occupied = [];
 
-  static getThem(level) {
-    switch (level) {
-      case 1:
-        return themes.prairie;
-      case 2:
-        return themes.desert;
-      case 3:
-        return themes.arctic;
-      case 4:
-        return themes.mountain;
-      default:
-        return themes.prairie;
-    }
+  preparingSave() {
+    const saved = {
+      level: this.level,
+      points: this.points,
+      teamHum: this.teamHum,
+      teamMon: this.teamMon,
+      fighters: this.fighters,
+      occupied: this.occupied,
+    };
+    return saved;
   }
 }

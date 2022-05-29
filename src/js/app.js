@@ -11,7 +11,7 @@ gamePlay.bindToDOM(document.querySelector('#game-container'));
 
 const GaSt = new GameState();
 
-const stateService = new GameStateService(localStorage);
+const stateService = new GameStateService(localStorage, GaSt);
 
 const gameCtrl = new GameController(gamePlay, stateService, GaSt);
 gameCtrl.init();
