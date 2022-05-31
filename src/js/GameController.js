@@ -56,7 +56,7 @@ export default class GameController {
         const { pos, typeAt } = GameState.zeroP;
         const fieldsAttack = getAllowedFields(pos, typeAt, 'attack');
         if (!fieldsAttack.includes(index)) {
-          GamePlay.showError('Вы не можете управлять игроками компьютера');
+          GamePlay.showError('Вы не можете атаковать этого противника.\nОн не входит в зону атаки ни одного из Ваших игроков.');
         } else { // Ответ компа на удар игрока.
           await this.attackResult(index, 'hum');
           const answer = this.compResponce();
@@ -284,15 +284,7 @@ export default class GameController {
 
   onSaveGameClick() {
     if (this.GS.fighters.length === 0) { GamePlay.showMessage('Не чего сохранять!! Начните играть!'); return; }
-    const saved = {
-      level: this.GS.level,
-      points: this.GS.points,
-      teamHum: this.GS.teamHum,
-      teamMon: this.GS.teamMon,
-      fighters: this.GS.fighters,
-      occupied: GameState.occupied,
-    };
-    this.stateService.save(saved);
+    this.stateService.save();
   }
 
   onLoadGameClick() {
