@@ -8,12 +8,23 @@ export default class PositionedCharacter {
     }
 
     this.character = character;
+    this.size = GameState.boardSize;
   }
 
   creatPositions() {
-    const allowedHum = [0, 1, 8, 9, 16, 17, 24, 25, 32, 33, 40, 41, 48, 49, 56, 57];
-    const allowedMons = [6, 7, 14, 15, 22, 23, 30, 31, 38, 39, 46, 47, 54, 55, 62, 63];
-    const human = ['bowman', 'swordsman', 'magician'];
+    const allowedHum = [];
+    for (let i = 0; i < this.size; i += 1) {
+      const memb = i * this.size;
+      allowedHum.push(memb);
+      allowedHum.push(memb + 1);
+    }
+    const allowedMons = [];
+    for (let i = 1; i < this.size + 1; i += 1) {
+      const memb = i * this.size - 2;
+      allowedMons.push(memb);
+      allowedMons.push(memb + 1);
+    }
+    const { human } = GameState;
     const positions = {};
     let newPos = 0;
     positions.character = this.character;

@@ -46,7 +46,7 @@ export default class GameController {
     if (this.pc[index].firstChild) {
       const specified = this.GS.fighters.find((item) => item.position === index);
       const { type } = specified.character;
-      if (this.GS.human.includes(type)) {
+      if (GameState.human.includes(type)) {
         for (const item of this.GS.fighters) {
           this.gamePlay.deselectCell(item.position);
         }
@@ -103,7 +103,7 @@ export default class GameController {
       }
     }
     if (this.pc[index].firstChild) {
-      if (this.GS.human.includes(this.pc[index].firstChild.classList[1])) {
+      if (GameState.human.includes(this.pc[index].firstChild.classList[1])) {
         this.gamePlay.setCursor(cursors.pointer);
       }
       const specified = this.GS.fighters.find((item) => item.position === index);

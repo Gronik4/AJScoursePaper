@@ -15,7 +15,6 @@ export default class GameState {
     this.level = 1;
     this.points = 0;
     this.monster = ['undead', 'vampire', 'daemon'];
-    this.human = ['magician', 'bowman', 'swordsman'];
     this.teamMon = [];
     this.teamHum = [];
     this.fighters = [];
@@ -24,6 +23,10 @@ export default class GameState {
   static zeroP = {};
 
   static occupied = [];
+
+  static boardSize = 8;
+
+  static human = ['magician', 'bowman', 'swordsman'];
 
   preparingSave() {
     const saved = {
